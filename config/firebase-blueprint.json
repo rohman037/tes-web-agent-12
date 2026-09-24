@@ -1,0 +1,238 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "User profile and authentication identity document",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "name": { "type": "string", "maxLength": 100, "description": "User display name" },
+        "role": { "type": "string", "enum": ["user", "admin", "vip", "superadmin"], "description": "User role" },
+        "accessCode": { "type": "string", "maxLength": 64, "description": "Associated access code" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["uid", "email"]
+    },
+    "client": {
+      "title": "Client",
+      "description": "Client user accounts, membership privileges, and package subscriptions",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique client ID" },
+        "accessCode": { "type": "string", "maxLength": 64, "description": "Assigned access code" },
+        "name": { "type": "string", "maxLength": 120, "description": "Full name of client" },
+        "email": { "type": "string", "format": "email", "description": "Client contact email" },
+        "whatsapp": { "type": "string", "maxLength": 30, "description": "WhatsApp contact number" },
+        "role": { "type": "string", "enum": ["user", "admin"], "description": "Authorization role" },
+        "packageId": { "type": "string", "maxLength": 64, "description": "Purchased package identifier" },
+        "packageName": { "type": "string", "maxLength": 100, "description": "Name of the subscription package" },
+        "price": { "type": "number", "description": "Transaction purchase price" },
+        "startDate": { "type": "string", "format": "date-time", "description": "Subscription start date" },
+        "expiryDate": { "type": "string", "format": "date-time", "description": "Subscription expiry date" },
+        "status": { "type": "string", "enum": ["active", "expiring_soon", "expired", "suspended"], "description": "Access validity status" },
+        "allowedFeatures": { "type": "array", "description": "List of feature modules permitted" },
+        "maxDailyTokens": { "type": "number", "description": "Daily token or generation ceiling" },
+        "usageCount": { "type": "number", "description": "Total generation invocations" },
+        "lastLoginAt": { "type": "number", "description": "Last login unix timestamp" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Client registration timestamp" }
+      },
+      "required": ["id", "accessCode", "name", "packageId", "status"]
+    },
+    "package": {
+      "title": "Package",
+      "description": "Subscription and access tier options available for purchase",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 64, "description": "Package identifier" },
+        "name": { "type": "string", "maxLength": 100, "description": "Package title" },
+        "tagline": { "type": "string", "maxLength": 255, "description": "Marketing tagline or subtitle" },
+        "price": { "type": "number", "description": "Price in IDR" },
+        "durationDays": { "type": "number", "description": "Access duration in calendar days" },
+        "features": { "type": "array", "description": "List of included feature highlights" },
+        "isPopular": { "type": "boolean", "description": "Whether highlighted as most popular" },
+        "isActive": { "type": "boolean", "description": "Whether available for purchase" },
+        "badgeLabel": { "type": "string", "maxLength": 40, "description": "Visual pill badge text" },
+        "targetCategory": { "type": "string", "enum": ["public", "member"], "description": "Target audience" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["id", "name", "price", "durationDays", "isActive"]
+    },
+    "transaction": {
+      "title": "Transaction",
+      "description": "Payment proof verification and subscription fulfillment record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Transaction reference code (TRX-...)" },
+        "customerName": { "type": "string", "maxLength": 120, "description": "Purchaser name" },
+        "whatsapp": { "type": "string", "maxLength": 30, "description": "Purchaser WhatsApp number" },
+        "email": { "type": "string", "format": "email", "description": "Purchaser email address" },
+        "planId": { "type": "string", "maxLength": 64, "description": "Selected subscription plan ID" },
+        "planName": { "type": "string", "maxLength": 100, "description": "Selected plan name" },
+        "planPrice": { "type": "number", "description": "Base plan price" },
+        "serviceFee": { "type": "number", "description": "Payment gateway or service fee" },
+        "totalPrice": { "type": "number", "description": "Total payment amount in IDR" },
+        "status": { "type": "string", "enum": ["PENDING_PROOF", "AWAITING_VERIFICATION", "APPROVED", "REJECTED"], "description": "Verification status" },
+        "proofImageBase64": { "type": "string", "description": "Transfer receipt proof" },
+        "accessCode": { "type": "string", "maxLength": 64, "description": "Issued access code upon approval" },
+        "validUntil": { "type": "string", "maxLength": 64, "description": "Access expiration label" },
+        "createdAt": { "type": "number", "description": "Creation timestamp in epoch ms" },
+        "updatedAt": { "type": "number", "description": "Last status change in epoch ms" },
+        "note": { "type": "string", "maxLength": 500, "description": "Customer note or admin memo" },
+        "rejectReason": { "type": "string", "maxLength": 500, "description": "Reason for payment rejection" }
+      },
+      "required": ["id", "customerName", "whatsapp", "planId", "totalPrice", "status"]
+    },
+    "history": {
+      "title": "History",
+      "description": "User generation records from AI prompt engineering tools",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique history entry ID" },
+        "clientId": { "type": "string", "description": "Client ID reference" },
+        "clientName": { "type": "string", "maxLength": 120, "description": "Client name" },
+        "accessCode": { "type": "string", "maxLength": 64, "description": "Client access code" },
+        "type": { "type": "string", "maxLength": 64, "description": "Generation tool type" },
+        "tool": { "type": "string", "maxLength": 64, "description": "Tool identifier" },
+        "input": { "type": "string", "description": "User input or video prompt parameters" },
+        "output": { "type": "string", "description": "AI-generated prompt or ideas result" },
+        "tokensUsed": { "type": "number", "description": "Tokens consumed during generation" },
+        "timestamp": { "type": "number", "description": "Unix timestamp in ms" }
+      },
+      "required": ["id", "type", "timestamp"]
+    },
+    "apiKey": {
+      "title": "ApiKey",
+      "description": "Managed Gemini API key with rate-limit and quota tracking",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Key record identifier" },
+        "key": { "type": "string", "description": "Encrypted or raw API key token" },
+        "alias": { "type": "string", "maxLength": 100, "description": "Friendly label" },
+        "dailyLimit": { "type": "number", "description": "Daily request quota" },
+        "dailyUsage": { "type": "number", "description": "Requests executed today" },
+        "monthlyLimit": { "type": "number", "description": "Monthly request quota" },
+        "monthlyUsage": { "type": "number", "description": "Requests executed this month" },
+        "status": { "type": "string", "enum": ["active", "expired", "revoked"], "description": "Key availability status" },
+        "expiryDate": { "type": "string", "format": "date-time", "description": "Key expiration date" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Registration timestamp" }
+      },
+      "required": ["id", "key", "status"]
+    },
+    "config": {
+      "title": "Config",
+      "description": "System-wide persistent configuration objects",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Configuration section key" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+      },
+      "required": ["id"]
+    },
+    "auditLog": {
+      "title": "AuditLog",
+      "description": "Administrative actions and security event audit record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Audit entry ID" },
+        "adminName": { "type": "string", "maxLength": 100, "description": "Admin identity" },
+        "action": { "type": "string", "maxLength": 100, "description": "Action executed" },
+        "details": { "type": "string", "maxLength": 1000, "description": "Action details" },
+        "category": { "type": "string", "maxLength": 50, "description": "Event classification" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Event timestamp" }
+      },
+      "required": ["id", "action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/user" },
+      "description": "User profile documents keyed by Firebase Auth UID"
+    },
+    "/clients/{clientId}": {
+      "schema": { "$ref": "#/entities/client" },
+      "description": "Active subscriber accounts and access codes"
+    },
+    "/packages/{packageId}": {
+      "schema": { "$ref": "#/entities/package" },
+      "description": "Membership packages and pricing plans"
+    },
+    "/transactions/{transactionId}": {
+      "schema": { "$ref": "#/entities/transaction" },
+      "description": "Payment verification transactions"
+    },
+    "/history/{historyId}": {
+      "schema": { "$ref": "#/entities/history" },
+      "description": "AI prompt generator history logs"
+    },
+    "/apiKeys/{apiKeyId}": {
+      "schema": { "$ref": "#/entities/apiKey" },
+      "description": "Admin Gemini API key pool"
+    },
+    "/configs/{configId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "System configuration documents (QRIS, UI, memory)"
+    },
+    "/auditLogs/{auditId}": {
+      "schema": { "$ref": "#/entities/auditLog" },
+      "description": "System administrative audit logs"
+    },
+    "/trackingEvents/{eventId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "Telemetry and system event tracking logs"
+    },
+    "/accessCodes/{codeId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "Access codes repository"
+    },
+    "/announcements/{announcementId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "System broadcast and update announcements"
+    },
+    "/promptFormulas/{formulaId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "AI prompt formulas repository"
+    },
+    "/affiliates/{affiliateId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "Affiliate and referral partner records"
+    },
+    "/apiKeyUsageLogs/{logId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "API key usage and quota telemetry logs"
+    },
+    "/apiKeyLogs/{logId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "API key audit logs"
+    },
+    "/aiAgents/{agentId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "Autonomous AI agent registry"
+    },
+    "/learningQueue/{queueId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "Self-learning prompt pattern queue"
+    },
+    "/categoryTaxonomy/{catId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "Video category taxonomy registry"
+    },
+    "/categoryTaxonomyProposals/{proposalId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "Self-learning taxonomy category proposals"
+    },
+    "/bannedDevices/{deviceId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "Banned devices blacklist"
+    },
+    "/pendingSchemaChanges/{changeId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "Pending autonomous schema migration proposals"
+    },
+    "/_healthCheck/{docId}": {
+      "schema": { "$ref": "#/entities/config" },
+      "description": "Connection probe and ping diagnostic document"
+    }
+  }
+}

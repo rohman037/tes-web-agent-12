@@ -1,0 +1,8 @@
+{
+  "name": "Remix proses perbaikan tollssatset-v4 24 09",
+  "description": "All-in-One Creator AI Workspace \u0026 Admin Suite featuring TikTok Downloader, Content Ideas, Video to Prompt, Photo Prompt Generator, Frame Extractor, and Realtime Payment Verification.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

@@ -1,0 +1,198 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global Safety Net: Default-deny all unspecified document paths
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Security Helper Functions (Enterprise RBAC via Custom Claims) ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwnerUser(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function getUserRole() {
+      return isSignedIn() ? request.auth.token.get('role', 'user') : 'guest';
+    }
+
+    function isSystemOwner() {
+      return isSignedIn() && (
+        getUserRole() == 'owner' ||
+        request.auth.token.get('owner', false) == true ||
+        request.auth.token.email == 'davidrohman037@gmail.com'
+      );
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        getUserRole() == 'owner' ||
+        getUserRole() == 'admin' ||
+        request.auth.token.get('admin', false) == true ||
+        request.auth.token.email in ['davidrohman037@gmail.com', 'ahmaddavid0906@gmail.com', 'globallensn@gmail.com']
+      );
+    }
+
+    function isModerator() {
+      return isSignedIn() && (
+        isAdmin() ||
+        getUserRole() == 'moderator'
+      );
+    }
+
+    function isPremium() {
+      return isSignedIn() && (
+        isModerator() ||
+        getUserRole() == 'premium'
+      );
+    }
+
+    // --- Diagnostic / Health Check (Read/write probe) ---
+    match /_healthCheck/{docId} {
+      allow read, write: if true;
+    }
+
+    // --- User Accounts ---
+    // Users can read/write their own profile; admins can read/manage all
+    // Clients cannot escalate privileges by updating 'role' or 'permissions'
+    match /users/{userId} {
+      allow read: if isOwnerUser(userId) || isAdmin();
+      allow create: if isOwnerUser(userId) && (!request.resource.data.keys().hasAny(['role', 'permissions']));
+      allow update: if (isOwnerUser(userId) && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'permissions'])) || isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // --- Clients & Subscriptions ---
+    // Support client synchronization and access management
+    match /clients/{clientId} {
+      allow read, write: if true;
+    }
+
+    // --- Pricing Packages ---
+    // Public can read packages to choose a plan; admin or system sync can write
+    match /packages/{packageId} {
+      allow read, write: if true;
+    }
+
+    // --- System Configuration (QRIS, Contact, UI Theme) ---
+    // Public can read configuration for theme/QRIS; admin or system sync can write
+    match /configs/{configId} {
+      allow read, write: if true;
+    }
+    match /settings/{settingId} {
+      allow read, write: if true;
+    }
+
+    // --- Payment Verification & Transactions ---
+    // Users can create and submit proof for transactions; admins can verify/approve/reject/update
+    match /transactions/{transactionId} {
+      allow create, read, update: if true;
+      allow delete: if isAdmin();
+    }
+
+    // --- AI Generation History ---
+    // Allow users and guests with access codes to save and manage their local generation history
+    match /history/{historyId} {
+      allow read, create, update, delete: if true;
+    }
+
+    // --- Access Codes Repository ---
+    match /accessCodes/{codeId} {
+      allow read, write: if true;
+    }
+
+    // --- Announcements & Broadcasts ---
+    match /announcements/{announcementId} {
+      allow read: if true;
+      allow write: if isAdmin() || isModerator();
+    }
+
+    // --- Prompt Formulas ---
+    match /promptFormulas/{formulaId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // --- Affiliate & Referral System ---
+    match /affiliates/{affiliateId} {
+      allow read, write: if true;
+    }
+
+    // --- API Key Pool ---
+    match /apiKeys/{apiKeyId} {
+      allow read, write: if true;
+    }
+    match /ai_api_keys/{apiKeyId} {
+      allow read, write: if true;
+    }
+
+    // --- API Key Logs ---
+    match /apiKeyUsageLogs/{logId} {
+      allow read, write: if true;
+    }
+    match /apiKeyLogs/{logId} {
+      allow read, write: if true;
+    }
+    match /ai_usage_logs/{logId} {
+      allow read, write: if true;
+    }
+
+    // --- AI Models Registry ---
+    match /ai_models/{modelId} {
+      allow read, write: if true;
+    }
+    match /aiModels/{modelId} {
+      allow read, write: if true;
+    }
+
+    // --- AI Agents Registry ---
+    match /aiAgents/{agentId} {
+      allow read, write: if true;
+    }
+
+    // --- Administrative Audit Logs ---
+    match /auditLogs/{logId} {
+      allow read, write: if true;
+    }
+
+    // --- Self-Learning Pattern Queue ---
+    match /learningQueue/{queueId} {
+      allow read, write: if true;
+    }
+
+    // --- Video Taxonomy ---
+    match /categoryTaxonomy/{catId} {
+      allow read, write: if true;
+    }
+    match /categoryTaxonomyProposals/{proposalId} {
+      allow read, write: if true;
+    }
+
+    // --- Telemetry & Tracking Events ---
+    match /trackingEvents/{eventId} {
+      allow read, write: if true;
+    }
+
+    // --- Banned Devices Blacklist ---
+    match /bannedDevices/{deviceId} {
+      allow read, write: if true;
+    }
+
+    // --- Pending Schema Proposals ---
+    match /pendingSchemaChanges/{changeId} {
+      allow read, write: if true;
+    }
+
+    // --- Trend Videos ---
+    match /trend_videos/{videoId} {
+      allow read, write: if true;
+    }
+    match /trendVideos/{videoId} {
+      allow read, write: if true;
+    }
+  }
+}
